@@ -71,7 +71,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Products app',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 21, 175, 241)),
         useMaterial3: true,
       ),
       home: Scaffold(
@@ -111,16 +111,22 @@ class BigCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodyLarge!.copyWith(
+      color: theme.colorScheme.onPrimary,
+    );
+
     return Card(
-      color: Colors.blue,
+      color: theme.colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Name: ${p.productName}'),
-            Text('Manufacturer: ${p.productManufacturer}'),
-            Text('Warranty: ${p.warranty}'),
-            Text('Manufactured date: ${p.productManufacturingDate}'),
+            Text('Name: ${p.productName}', style: style),
+            Text('Manufacturer: ${p.productManufacturer}', style: style),
+            Text('Warranty: ${p.warranty}', style: style),
+            Text('Manufactured date: ${p.productManufacturingDate}', style: style),
           ],
         ) ,
       ), 
