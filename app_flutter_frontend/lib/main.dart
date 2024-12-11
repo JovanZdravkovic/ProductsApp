@@ -68,6 +68,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+
+    var headlineStyle = Theme.of(context).textTheme.displaySmall!;
+    const iconSize = 50.0;
+
     return MaterialApp(
       title: 'Products app',
       theme: ThemeData(
@@ -76,7 +80,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Products'),
+          title: Text('Products', style: headlineStyle),
         ),
         body: Center(
           child: FutureBuilder<List<Product>>(
@@ -97,7 +101,16 @@ class _MyAppState extends State<MyApp> {
               return const CircularProgressIndicator();
             },
           ),
-        )
+        ),
+        floatingActionButton: FloatingActionButton.large(
+          onPressed: () => {
+            print('Button works')
+          },
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.orange.shade800,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: iconSize),
+        ),
       ),
     );
   }
