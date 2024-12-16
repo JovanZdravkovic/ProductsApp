@@ -9,6 +9,7 @@ import org.jdbi.v3.core.Jdbi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ProductService{
     private final Jdbi dbi;
@@ -34,6 +35,24 @@ public class ProductService{
                 }
             });
             return productsDTO;
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
+
+    public UUID createProduct(ProductDTO productDTO) throws Exception {
+        try {
+            UUID id = dbi.inTransaction(handle -> {
+                ProductDAO productDAO = handle.attach(ProductDAO.class);
+                Product productModel = Product.builder()
+                        .productName(productDTO.getProductName())
+                        .productManufacturer(productDTO.getProductManufacturer())
+                        .warranty(productDTO.isWarranty())
+                        .productManufacturingDate(java.sql.Date.valueOf(productDTO.getProductManufacturingDate()))
+                        .build();
+                return productDAO.insert(productModel);
+            });
+            return id;
         } catch (Exception e) {
             throw new Exception(e);
         }
