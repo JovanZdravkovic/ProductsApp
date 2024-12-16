@@ -6,6 +6,16 @@ void main() {
   runApp(const MyApp());
 }
 
+class Response {
+  final String responseMessage;
+  final int statusCode;
+
+  const Response({
+    required this.responseMessage,
+    required this.statusCode
+  });
+}
+
 class Product {
   final String productName;
   final String productManufacturer;
@@ -50,6 +60,26 @@ Future<List<Product>> fetchProducts() async {
   }
 }
 
+Future<Response> createProduct(String productName, String productManufacturer, DateTime manufacturingDate, bool warranty) async {
+  final response = await http.post(
+    Uri.parse('http://10.0.2.2:8080/products/create'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'productName': productName,
+      'productManufacturer': productManufacturer,
+      'warranty': warranty,
+      'productManufacturingDate': DateFormat('yyyy-MM-dd').format(manufacturingDate),
+    }),
+  );
+  if(response.statusCode == 200) {
+    return Response(responseMessage: 'Successfully created product $productName.', statusCode: 0);
+  } else {
+    return const Response(responseMessage: 'Error occurred while creating product.', statusCode: 1);
+  }
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -82,7 +112,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class ProductsPage extends StatelessWidget {
+class ProductsPage extends StatefulWidget {
   const ProductsPage({
     super.key,
     required this.headlineStyle,
@@ -93,17 +123,62 @@ class ProductsPage extends StatelessWidget {
   final Future<List<Product>> futureProductsList;
 
   @override
+  State<ProductsPage> createState() => _ProductsPageState();
+}
+
+class _ProductsPageState extends State<ProductsPage> {
+
+  Future<void> navigateCreateProduct(BuildContext context) async {
+    ScaffoldMessenger.of(context).removeCurrentMaterialBanner();
+    final bannerMessage = await Navigator.push(
+      context, 
+      MaterialPageRoute(builder: (context) => CreateProductPage(headlineStyle: widget.headlineStyle,)),
+    );
+
+    if (!context.mounted || bannerMessage == null) {
+      return;
+    }
+
+    dynamic typeColor;
+    // statusCode == 0 ==> Success banner (green)
+    // statusCode == 1 ==> Error banner (red)
+    // statusCode != 0,1 ==> Info banner (blue)
+    switch (bannerMessage.statusCode) {
+      case 0:
+        typeColor = Colors.green.shade300;
+        break; 
+      case 1: 
+        typeColor = Colors.red.shade600;
+        break; 
+      default:
+        typeColor = Colors.blue;
+    }
+    ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
+      content: Text(bannerMessage.responseMessage, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
+      backgroundColor: typeColor,
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+          }, 
+          child: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary),
+        ),
+      ],
+    ));
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     const double iconSize = 50.0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products', style: headlineStyle),
+        title: Text('Products', style: widget.headlineStyle),
       ),
       body: Center(
         child: FutureBuilder<List<Product>>(
-          future: futureProductsList,
+          future: widget.futureProductsList,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return ListView(
@@ -126,7 +201,7 @@ class ProductsPage extends StatelessWidget {
         child: FittedBox(
           child: FloatingActionButton.large(
             onPressed: () => {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CreateProductPage(headlineStyle: headlineStyle,)),)
+              navigateCreateProduct(context)
             },
             foregroundColor: Colors.white,
             backgroundColor: Colors.orange.shade800,
@@ -139,42 +214,12 @@ class ProductsPage extends StatelessWidget {
   }
 }
 
-class BigCard extends StatelessWidget {
-
-  const BigCard({super.key, required this.p});
-
-  final Product p;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.bodyLarge!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-
-    return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Name: ${p.productName}', style: style),
-            Text('Manufacturer: ${p.productManufacturer}', style: style),
-            Text('Warranty: ${p.warranty}', style: style),
-            Text('Manufactured date: ${p.productManufacturingDate}', style: style),
-          ],
-        ) ,
-      ), 
-    );
-  }
-}
-
 class CreateProductPage extends StatefulWidget {
 
   const CreateProductPage({super.key, required this.headlineStyle });
 
   final TextStyle headlineStyle;
+  
 
   @override
   State<CreateProductPage> createState() => _CreateProductPageState();
@@ -182,9 +227,10 @@ class CreateProductPage extends StatefulWidget {
 
 class _CreateProductPageState extends State<CreateProductPage> {
   final GlobalKey<FormState> _createProductForm = GlobalKey<FormState>();
-  String productName = "", productManufacturer = "";
+  String productName = '', productManufacturer = '';
   DateTime? manufacturingDate;
   bool warranty = false;
+  late Future<Response> bannerMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -214,6 +260,11 @@ class _CreateProductPageState extends State<CreateProductPage> {
                     hintStyle: formTextStyle,
                     hintText: 'Enter product name',
                   ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      productName = value!;
+                    });
+                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter product name';
@@ -232,6 +283,11 @@ class _CreateProductPageState extends State<CreateProductPage> {
                     hintStyle: formTextStyle,
                     hintText: 'Enter manufacturer name',
                   ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      productManufacturer = value!;
+                    });
+                  },
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter manufacturer name';
@@ -284,8 +340,8 @@ class _CreateProductPageState extends State<CreateProductPage> {
                         });
                       },
                       label: Text(date == null
-                                  ? 'Pick a date'
-                                  : DateFormat('yyyy-MM-dd').format(date),
+                        ? 'Pick a date'
+                        : DateFormat('yyyy-MM-dd').format(date),
                       ),
                     ),
                   ],
@@ -298,14 +354,15 @@ class _CreateProductPageState extends State<CreateProductPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          if(_createProductForm.currentState!.validate()) {
-                            print('valid data');
-                          } else {
-                            print('invalid data');
+                          if(_createProductForm.currentState!.validate() && manufacturingDate != null) {
+                            setState(() {
+                              bannerMessage = createProduct(productName, productManufacturer, manufacturingDate!, warranty);
+                            });
+                            Navigator.pop(context, bannerMessage);
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(239, 108, 0, 1),
+                          backgroundColor: Colors.orange.shade800,
                         ),
                         child: Text('Create', style: createButtonStyle),
                       ),
@@ -317,6 +374,37 @@ class _CreateProductPageState extends State<CreateProductPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class BigCard extends StatelessWidget {
+
+  const BigCard({super.key, required this.p});
+
+  final Product p;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodyLarge!.copyWith(
+      color: theme.colorScheme.onPrimary,
+    );
+
+    return Card(
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Name: ${p.productName}', style: style),
+            Text('Manufacturer: ${p.productManufacturer}', style: style),
+            Text('Warranty: ${p.warranty}', style: style),
+            Text('Manufactured date: ${p.productManufacturingDate}', style: style),
+          ],
+        ) ,
+      ), 
     );
   }
 }
