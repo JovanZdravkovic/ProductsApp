@@ -1,2 +1,2 @@
 # ProductsApp
-Flutter application that communicates, via HTTP, with Java RESTfull backend and Postgres database.
+My first flutter application. It communicates, via HTTP, with Java RESTful backend and Postgres database.
