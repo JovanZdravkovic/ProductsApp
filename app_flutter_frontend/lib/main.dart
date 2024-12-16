@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'alertbanner.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -139,32 +140,7 @@ class _ProductsPageState extends State<ProductsPage> {
       return;
     }
 
-    dynamic typeColor;
-    // statusCode == 0 ==> Success banner (green)
-    // statusCode == 1 ==> Error banner (red)
-    // statusCode != 0,1 ==> Info banner (blue)
-    switch (bannerMessage.statusCode) {
-      case 0:
-        typeColor = Colors.green.shade300;
-        break; 
-      case 1: 
-        typeColor = Colors.red.shade600;
-        break; 
-      default:
-        typeColor = Colors.blue;
-    }
-    ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
-      content: Text(bannerMessage.responseMessage, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
-      backgroundColor: typeColor,
-      actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-          }, 
-          child: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary),
-        ),
-      ],
-    ));
+    ScaffoldMessenger.of(context).showMaterialBanner(AlertBanner.alertBanner(context, bannerMessage.responseMessage, bannerMessage.statusCode));
   }
 
   @override
