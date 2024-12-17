@@ -75,7 +75,7 @@ Future<Response> createProduct(String productName, String productManufacturer, D
     }),
   );
   if(response.statusCode == 200) {
-    return Response(responseMessage: 'Successfully created product $productName.', statusCode: 0);
+    return const Response(responseMessage: 'Successfully created product.', statusCode: 0);
   } else {
     return const Response(responseMessage: 'Error occurred while creating product.', statusCode: 1);
   }
@@ -90,14 +90,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  late Future<List<Product>> futureProductsList;
-
-  @override
-  void initState() {
-    super.initState();
-    futureProductsList = fetchProducts();
-  }
-
   @override
   Widget build(BuildContext context) {
     var headlineStyle = Theme.of(context).textTheme.headlineMedium!;
@@ -108,7 +100,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: ProductsPage(headlineStyle: headlineStyle, futureProductsList: futureProductsList),
+      home: ProductsPage(headlineStyle: headlineStyle),
     );
   }
 }
@@ -116,18 +108,24 @@ class _MyAppState extends State<MyApp> {
 class ProductsPage extends StatefulWidget {
   const ProductsPage({
     super.key,
-    required this.headlineStyle,
-    required this.futureProductsList,
+    required this.headlineStyle
   });
 
   final TextStyle headlineStyle;
-  final Future<List<Product>> futureProductsList;
 
   @override
   State<ProductsPage> createState() => _ProductsPageState();
 }
 
 class _ProductsPageState extends State<ProductsPage> {
+
+  late Future<List<Product>> futureProductsList;
+
+  @override
+  void initState() {
+    super.initState();
+    futureProductsList = fetchProducts();
+  }
 
   Future<void> navigateCreateProduct(BuildContext context) async {
     ScaffoldMessenger.of(context).removeCurrentMaterialBanner();
@@ -141,6 +139,10 @@ class _ProductsPageState extends State<ProductsPage> {
     }
 
     ScaffoldMessenger.of(context).showMaterialBanner(AlertBanner.alertBanner(context, bannerMessage.responseMessage, bannerMessage.statusCode));
+    // Refresh products page
+    setState(() {
+      futureProductsList = fetchProducts();
+    });
   }
 
   @override
@@ -154,7 +156,7 @@ class _ProductsPageState extends State<ProductsPage> {
       ),
       body: Center(
         child: FutureBuilder<List<Product>>(
-          future: widget.futureProductsList,
+          future: futureProductsList,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return ListView(
