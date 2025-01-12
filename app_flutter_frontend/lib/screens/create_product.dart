@@ -23,12 +23,6 @@ class _CreateProductPageState extends State<CreateProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final createButtonStyle = theme.textTheme.bodyLarge!.copyWith(
-      color: theme.colorScheme.onPrimary,
-      fontWeight: FontWeight.bold,
-    );
-    final formTextStyle = theme.textTheme.bodyLarge!;
     var date = manufacturingDate;
 
     return Scaffold(
@@ -45,7 +39,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
               children: [
                 TextFormField(
                   decoration: InputDecoration(
-                    hintStyle: formTextStyle,
+                    hintStyle: Theme.of(context).textTheme.bodyLarge!,
                     hintText: 'Enter product name',
                   ),
                   onChanged: (String? value) {
@@ -66,7 +60,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
                 SPACING_BOX,
                 TextFormField(
                   decoration: InputDecoration(
-                    hintStyle: formTextStyle,
+                    hintStyle: Theme.of(context).textTheme.bodyLarge!,
                     hintText: 'Enter manufacturer name',
                   ),
                   onChanged: (String? value) {
@@ -87,10 +81,9 @@ class _CreateProductPageState extends State<CreateProductPage> {
                 SPACING_BOX,
                 Row(
                   children: [
-                    Text('Warranty: ', style: formTextStyle),
+                    Text('Warranty: ', style: Theme.of(context).textTheme.bodyLarge!),
                     Switch(
                       value: warranty,
-                      activeColor: theme.colorScheme.primary,
                       onChanged: (bool value) {
                         setState(() {
                           warranty = value;
@@ -102,10 +95,10 @@ class _CreateProductPageState extends State<CreateProductPage> {
                 SPACING_BOX,
                 Row(
                   children: [
-                    Text('Manufacturing date:', style: formTextStyle),
+                    Text('Manufacturing date:', style: Theme.of(context).textTheme.bodyLarge!),
                     SPACING_BOX,
                     ElevatedButton.icon(
-                      icon: const Icon(Icons.calendar_today),
+                      icon: CALENDAR_ICON,
                       onPressed: () async {
                         var pickedDate = await showDatePicker(
                           context: context,
@@ -142,7 +135,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange.shade800,
                         ),
-                        child: Text('Create', style: createButtonStyle),
+                        child: Text('Create'),
                       ),
                     ),
                   ],

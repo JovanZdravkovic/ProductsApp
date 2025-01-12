@@ -25,3 +25,6 @@ const ALERT_SUCCESS_ICON = Icon(Icons.check_circle_outline, color: Colors.white)
 const ALERT_ERROR_ICON = Icon(Icons.error_outline, color: Colors.white);
 const ALERT_INFO_ICON = Icon(Icons.info_outline, color: Colors.white);
 const ALERT_CLOSE_ICON = Icon(Icons.close, color: Colors.white);
+
+// Elevated Button
+const CALENDAR_ICON = Icon(Icons.calendar_today, color: Colors.white);
